@@ -64,7 +64,7 @@ resource "aws_instance" "db_server" {
   monitoring             = true
   subnet_id              = element(aws_subnet.internal_db[*].id, count.index)
   vpc_security_group_ids = [aws_security_group.db-sg.id]
-  
+
 
   tags = {
     Name = "Database-Server-${count.index}"

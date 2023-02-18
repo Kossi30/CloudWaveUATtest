@@ -1,7 +1,7 @@
 resource "aws_vpc" "vpc" {
-  cidr_block = var.vpc_cidr
-  instance_tenancy = "default"
-  enable_dns_support = true
+  cidr_block           = var.vpc_cidr
+  instance_tenancy     = "default"
+  enable_dns_support   = true
   enable_dns_hostnames = true
 
   tags = {
@@ -19,9 +19,9 @@ resource "aws_internet_gateway" "igw" {
 resource "aws_subnet" "external" {
   count = length(slice(data.aws_availability_zones.az.names, 0, 2))
 
-  cidr_block        = cidrsubnet(aws_vpc.vpc.cidr_block, 8, length(slice(data.aws_availability_zones.az.names, 0, 2)) + count.index)
-  vpc_id            = aws_vpc.vpc.id
-  availability_zone = slice(data.aws_availability_zones.az.names, 0, 2)[count.index]
+  cidr_block              = cidrsubnet(aws_vpc.vpc.cidr_block, 8, length(slice(data.aws_availability_zones.az.names, 0, 2)) + count.index)
+  vpc_id                  = aws_vpc.vpc.id
+  availability_zone       = slice(data.aws_availability_zones.az.names, 0, 2)[count.index]
   map_public_ip_on_launch = true
 
   tags = {

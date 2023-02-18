@@ -50,6 +50,14 @@ resource "aws_security_group" "jmp-sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+
+  ingress {
+    from_port   = local.http_from
+    to_port     = local.http_to
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
