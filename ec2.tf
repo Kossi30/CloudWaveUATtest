@@ -1,14 +1,32 @@
-
 resource "aws_instance" "jump_box" {
   count                       = length(slice(data.aws_availability_zones.az.names, 0, 2))
   ami                         = var.ami_id
   instance_type               = "t3.micro"
-  key_name                    = aws_key_pair.jumpbox-key.key_name // specify the key pair
+  key_name                    = "Jesusislove"
   tenancy                     = "default"
   monitoring                  = true
   subnet_id                   = element(aws_subnet.external[*].id, count.index)
   associate_public_ip_address = true
   vpc_security_group_ids      = [aws_security_group.jmp-sg.id]
+
+  # connection {
+  #   type        = "ssh"
+  #   host        = self.public_ip
+  #   user        = "ec2-user"
+  #   private_key = file("~/.ssh/id_rsa")
+  #   insecure    = true
+
+  #   timeout = "5m"
+  # }
+
+  # provisioner "remote-exec" {
+  #   inline = [
+  #     "echo '${sensitive(aws_key_pair.app-key.public_key)}' >> ~/.ssh/authorized_keys",
+  #     "chmod 600 ~/.ssh/authorized_keys",
+  #     "rm -f ~/app-key.pem",
+  #     "exit"
+  #   ]
+  # }
 
   tags = {
     Name = "Jump-Box-${count.index}"
@@ -20,21 +38,24 @@ resource "aws_instance" "app_server" {
 
   ami                    = var.ami_id
   instance_type          = "t3.micro"
-  key_name               = aws_key_pair.app-key.key_name
+  key_name               = "Jesusislove"
   tenancy                = "default"
   monitoring             = true
   subnet_id              = element(aws_subnet.internal[*].id, count.index)
-  vpc_security_group_ids = [aws_security_group.app-sg.id]
-  iam_instance_profile   = aws_iam_instance_profile.s3-access.name
+  vpc_security_group_ids = [aws_security_group.app-sg.id, aws_security_group.jmp-sg.id]
+  iam_instance_profile   = aws_iam_instance_profile.ec2_instance_profile.name
+  private_ip             = cidrhost(aws_subnet.internal[count.index].cidr_block, 4 + count.index)
 
+  # user_data = <<-EOF
+  #   #!/bin/bash
+  #   echo '${sensitive(aws_key_pair.app-key.public_key)}' >> ~/.ssh/authorized_keys
+  #   chmod 600 ~/.ssh/authorized_keys
+  #   rm -f ~/app-key.pem
+  #   exit 0
+  # EOF
 
   tags = {
     Name = "Application-Server-${count.index}"
-  }
-
-  volume_tags = {
-    Name      = "EFS_TEST_ROOT"
-    Terraform = "true"
   }
 }
 
@@ -59,7 +80,7 @@ resource "aws_instance" "db_server" {
 
   ami                    = var.ami_id
   instance_type          = "t3.micro"
-  key_name               = aws_key_pair.db-key.key_name
+  key_name               = "Jesusislove"
   tenancy                = "default"
   monitoring             = true
   subnet_id              = element(aws_subnet.internal_db[*].id, count.index)
@@ -70,3 +91,5 @@ resource "aws_instance" "db_server" {
     Name = "Database-Server-${count.index}"
   }
 }
+
+
